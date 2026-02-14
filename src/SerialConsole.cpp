@@ -71,7 +71,7 @@ void SerialConsole::printMenu()
     Serial.println("Config Commands (enter command=newvalue). Current values shown in parenthesis:");
     Serial.println();
 
-    Logger::console("SYSTYPE=%i - Set board type (0=Macchina A0, 1=EVTV ESP32 Board 2=Macchina A5)", settings.systemType);
+    Logger::console("SYSTYPE=%i - Set board type (0=Macchina A0, 1=EVTV ESP32 Board, 2=Macchina A5, 4=ESP320-S3 TFT)", settings.systemType);
     Logger::console("LOGLEVEL=%i - set log level (0=debug, 1=info, 2=warn, 3=error, 4=off)", settings.logLevel);
     Serial.println();
 
@@ -99,6 +99,9 @@ void SerialConsole::printMenu()
     Logger::console("BTMODE=%i - Set mode for Bluetooth (0 = Off, 1 = On)", settings.enableBT);
     Logger::console("BTNAME=%s - Set advertised Bluetooth name", settings.btName);
     Logger::console("SENDBUS=%i - Set which CAN bus to send messages from ELM327 emulator", settings.sendingBus);
+    Serial.println();
+
+    Logger::console("CONSOLECAN=%i - Set whether to send output to console (0=Dis, 1=En)", settings.sendToConsole);
     Serial.println();
 
     Logger::console("LAWICEL=%i - Set whether to accept LAWICEL commands (0 = Off, 1 = On)", settings.enableLawicel);
@@ -347,6 +350,7 @@ void SerialConsole::handleConfigCmd()
         if (newValue > 1) newValue = 1;
         Logger::console("Setting Console output of CAN to %i", newValue);
         canManager.setSendToConsole(newValue);
+        settings.sendToConsole = newValue;
         writeEEPROM = true;
     } else if (cmdString == String("SENDBUS")) {
         if (newValue < 0) newValue = 0;
@@ -388,6 +392,7 @@ void SerialConsole::handleConfigCmd()
         if (newValue == 1) Logger::console("Setting board type to EVTV ESP32");
         if (newValue == 2) Logger::console("Setting board type to Macchina 5CAN");
         if (newValue == 3) Logger::console("Setting board type to EVTV ESP32-S3");
+        if (newValue == 4) Logger::console("Setting board type to EVTV ESP32-S3 with TFT");
         settings.systemType = newValue;
         writeEEPROM = true;
     } else if (cmdString == String("LOGLEVEL")) {
@@ -455,6 +460,7 @@ void SerialConsole::handleConfigCmd()
         nvPrefs.putString("SSID", settings.SSID);
         nvPrefs.putString("wpa2Key", settings.WPA2Key);
         nvPrefs.putString("btname", settings.btName);
+        nvPrefs.putBool("sendToConsole", settings.sendToConsole);        
         nvPrefs.end();
     }
 } 

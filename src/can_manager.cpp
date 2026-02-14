@@ -30,6 +30,17 @@
 //#define TWAI_ALERT_NONE                     0x00000000  /**< Bit mask to disable all alerts during configuration */
 //#define TWAI_ALERT_AND_LOG                  0x00020000  /**< Bit mask to enable alerts to also be logged when they occur. Note that logging from the ISR is disabled if CONFIG_TWAI_ISR_IN_IRAM is enabled (see docs). */
 
+// Debug routine to print out TWAI (CAN) status
+static void dump_twai_state(const char* where) {
+  twai_status_info_t info;
+  esp_err_t e = twai_get_status_info(&info);
+  Serial.printf("[%s] twai_get_status_info: %s\n", where, esp_err_to_name(e));
+  if (e == ESP_OK) {
+    Serial.printf("[%s] TWAI state=%d msgs_to_rx=%d rx_err=%d tx_err=%d bus_err=%d\n",
+                  where, (int)info.state, (int)info.msgs_to_rx,
+                  (int)info.rx_error_counter, (int)info.tx_error_counter, (int)info.bus_error_count);
+  }
+}
 
 CANManager::CANManager()
 {
@@ -171,8 +182,8 @@ void CANManager::displayFrame(CAN_FRAME_FD &frame, int whichBus)
 
 void CANManager::loop()
 {
-    CAN_FRAME incoming;
-    CAN_FRAME_FD inFD;
+    static CAN_FRAME incoming;
+    static CAN_FRAME_FD inFD;
     
     size_t wifiLength = wifiGVRET.numAvailableBytes();
     size_t serialLength = serialGVRET.numAvailableBytes();
@@ -192,8 +203,8 @@ void CANManager::loop()
         }
     }
 
-    for (int i = 0; i < SysSettings.numBuses; i++)
-    {
+    const int maxBuses = (int)(sizeof(canBuses)/sizeof(canBuses[0]));  // if canBuses is a real array here
+    for (int i = 0; i < SysSettings.numBuses && i < maxBuses; i++)    {
         if (!canBuses[i]) continue;
         if (!settings.canSettings[i].enabled) continue;
         while ( (canBuses[i]->available() > 0) && (maxLength < (WIFI_BUFF_SIZE - 80)))
@@ -203,19 +214,24 @@ void CANManager::loop()
                 canBuses[i]->read(incoming);
                 addBits(i, incoming);
                 displayFrame(incoming, i);
+
+                toggleRXLED();
+
+                if ( ((incoming.id > 0x7DF) && (incoming.id < 0x7F0)) || elmEmulator.getMonitorMode())
+                {
+                    //canManager.displayFrame(incoming, i);
+                    if (i == settings.sendingBus)  elmEmulator.processCANReply(incoming);
+                }            
             }
             else
             {
                 canBuses[i]->readFD(inFD);
                 addBits(i, inFD);
                 displayFrame(inFD, i);
-            }
-            
-            toggleRXLED();
-            if ( ((incoming.id > 0x7DF) && (incoming.id < 0x7F0)) || elmEmulator.getMonitorMode())
-            {
-                //canManager.displayFrame(incoming, i);
-                if (i == settings.sendingBus)  elmEmulator.processCANReply(incoming);
+
+                toggleRXLED();
+
+                // Do any canFD EML327 processing here if we add that in the future
             }
             
             wifiLength = wifiGVRET.numAvailableBytes();

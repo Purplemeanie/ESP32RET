@@ -49,11 +49,12 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //This keeps the latency more consistent. Otherwise the buffer could partially fill and never send.
 #define SER_BUFF_FLUSH_INTERVAL 20000
 
-#define CFG_BUILD_NUM   618
+#define CFG_BUILD_NUM   777
 #define CFG_VERSION "Alpha Nov 29 2020"
 #define PREF_NAME   "ESP32RET"
 #define EVTV_NAME   "ESP32RET"
 #define MACC_NAME   "A0RET"
+#define S3TFT_NAME  "ESP32S3TFT"
 
 #define MARK_LIMIT  6   //# of our analog input pins to use for marking. Defaults to all of them. Send voltage to pin to trigger it
 
@@ -70,6 +71,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define A0_NUM_LEDS    1
 #define A5_LED_PIN     15
 #define A5_NUM_LEDS    4
+#define S3TFT_LED_PIN   33
+#define S3TFT_NUM_LEDS  1
 #define BRIGHTNESS  190
 #define LED_TYPE    WS2812B
 #define COLOR_ORDER GRB
@@ -114,6 +117,9 @@ struct EEPROMSettings {
     uint8_t wifiMode; //0 = don't use wifi, 1 = connect to an AP, 2 = Create an AP
     char SSID[32];     //null terminated string for the SSID
     char WPA2Key[64]; //Null terminated string for the key. Can be a passphase or the actual key
+
+    boolean sendToConsole; // Determines whether to send output to console or not.
+
 } __attribute__((__packed__));
 
 struct SystemSettings {

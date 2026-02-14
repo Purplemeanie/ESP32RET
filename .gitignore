@@ -27,3 +27,16 @@
 *.exe
 *.out
 *.app
+
+# Don't include all the PlatformIO downloads
+.pio/
+
+# Mac Hidden Files
+.DS_Store
+
+# Don't include the coredump
+coredump*.bin
+
+# Visual Sutdio Code Files
+.vscode/
+*.code-workspace

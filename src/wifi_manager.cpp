@@ -171,7 +171,7 @@ void WiFiManager::loop()
                             }
                         }
                     }
-                    if (i >= MAX_CLIENTS) {
+                    if (i >= MAX_CLIENTS) { // This will always be true seeing as we never break. JM
                         //no free/disconnected spot so reject
                         wifiServer.available().stop();
                     }
@@ -194,7 +194,7 @@ void WiFiManager::loop()
                             }
                         }
                     }
-                    if (i >= MAX_CLIENTS) {
+                    if (i >= MAX_CLIENTS) { // This will always be true seeing as we never break. JM
                         //no free/disconnected spot so reject
                         wifiOBDII.available().stop();
                     }
@@ -282,7 +282,8 @@ void WiFiManager::loop()
         wifiUDPServer.endPacket();
     }
 
-    ArduinoOTA.handle();
+    if (SysSettings.isWifiConnected)
+        ArduinoOTA.handle();
 }
 
 void WiFiManager::sendBufferedData()
